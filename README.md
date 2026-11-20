@@ -3,11 +3,11 @@
 > **Laboratorio interactivo de interferencia, difracción y paquetes de ondas**
 > Simulaciones en tiempo real con Canvas 2D — sin dependencias de física externas
 
-**🔗 Live Demo → [sil.github.io/wave-lab](https://sil.github.io/wave-lab/)**
+**🔗 Live Demo → [amurlaniakea.github.io/wave-lab](https://amurlaniakea.github.io/wave-lab/)**
 
-[![CI](https://github.com/sil/wave-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/sil/wave-lab/actions/workflows/ci.yml)
-[![Deploy](https://github.com/sil/wave-lab/actions/workflows/deploy.yml/badge.svg)](https://github.com/sil/wave-lab/actions/workflows/deploy.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![CI](https://github.com/amurlaniakea/wave-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/amurlaniakea/wave-lab/actions/workflows/ci.yml)
+[![Deploy](https://github.com/amurlaniakea/wave-lab/actions/workflows/deploy.yml/badge.svg)](https://github.com/amurlaniakea/wave-lab/actions/workflows/deploy.yml)
+[![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL_3.0_or_later-blue.svg)](LICENSE)
 
 ---
 
@@ -128,12 +128,12 @@ wave-lab/
 
 | Proyecto | Tema | Estado |
 |----------|------|--------|
-| [Fractal](https://github.com/sil/fractal) | Geometría fractal y sistemas-L | ✅ |
-| [Orbitae](https://github.com/sil/orbitae) | Orbitales atómicos y números cuánticos | ✅ |
+| [Fractal](https://github.com/amurlaniakea/fractal) | Geometría fractal y sistemas-L | ✅ |
+| [Orbitae](https://github.com/amurlaniakea/orbitae) | Orbitales atómicos y números cuánticos | ✅ |
 | **🌊 wave-lab** | **Ondas, interferencia y Schrödinger 1D** | **✅** |
 
 ---
 
 ## 📄 Licencia
 
-MIT © [sil](https://github.com/sil)
+AGPL-3.0-or-later © [Pedro Sordo Martínez](https://github.com/amurlaniakea)

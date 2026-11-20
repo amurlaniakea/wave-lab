@@ -1,7 +1,10 @@
 {
-  "name": "sandbox-workspace",
+  "name": "wave-lab",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
+  "license": "AGPL-3.0-or-later",
+  "author": "Pedro Sordo Martínez <amurlaniakea@gmail.com>",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
