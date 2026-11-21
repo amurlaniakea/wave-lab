@@ -113,6 +113,12 @@ export default function App() {
           <p>wave-lab — Simulaciones de física ondulatoria en Canvas 2D</p>
           <p className="mt-1">TypeScript + React + Tailwind CSS · Sin dependencias de física externas</p>
           <p className="mt-1 text-indigo-400/60">Parte de la serie: Fractal → Orbitae → <span className="text-indigo-300">Wave-Lab</span></p>
+          <p className="mt-4 font-medium tracking-wide select-none">
+            <span className="text-blue-400">«Tecnósfera al servicio de la Biósfera.»</span> — <span className="text-red-400">«La Paz Es El Camino.»</span>
+          </p>
+          <p className="mt-2 text-indigo-400/60 text-[10px] uppercase tracking-widest">
+            MagoPredator SPAIN
+          </p>
         </footer>
       </main>
     </div>
