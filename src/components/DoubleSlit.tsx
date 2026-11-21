@@ -22,177 +22,185 @@ export default function DoubleSlit() {
   useEffect(() => { draw(); }, [wavelength, slitDist, slitWidth, brightness, colorHue]);
 
   function draw() {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
 
-    const w = canvas.width;
-    const h = canvas.height;
-    const t = timeRef.current;
-    const lam = wavelength;
-    const k = (2 * Math.PI) / lam;
-    const omega = 4;
+      const w = canvas.width;
+      const h = canvas.height;
+      const t = timeRef.current;
+      const lam = wavelength;
+      const k = (2 * Math.PI) / lam;
+      const omega = 4;
 
-    ctx.fillStyle = '#0a0a1a';
-    ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = '#0a0a1a';
+      ctx.fillRect(0, 0, w, h);
 
-    const barrierX = 200;
-    const slit1Y = h / 2 - slitDist / 2;
-    const slit2Y = h / 2 + slitDist / 2;
+      const barrierX = 200;
+      const slit1Y = h / 2 - slitDist / 2;
+      const slit2Y = h / 2 + slitDist / 2;
 
-    // Draw barrier - make it clearly visible
-    const barrierColor = '#374151'; // lighter gray
-    const barrierEdgeColor = '#64748b'; // slate edge
-    const slitEdgeColor = '#22d3ee'; // cyan edge for slit openings
+      // Draw barrier - make it clearly visible
+      const barrierColor = '#374151'; // lighter gray
+      const barrierEdgeColor = '#64748b'; // slate edge
+      const slitEdgeColor = '#22d3ee'; // cyan edge for slit openings
 
-    ctx.fillStyle = barrierColor;
-    // Top barrier
-    ctx.fillRect(barrierX - 4, 0, 8, slit1Y - slitWidth / 2);
-    // Middle barrier (between slits)
-    ctx.fillRect(barrierX - 4, slit1Y + slitWidth / 2, 8, slit2Y - slitWidth / 2 - slit1Y - slitWidth / 2);
-    // Bottom barrier
-    ctx.fillRect(barrierX - 4, slit2Y + slitWidth / 2, 8, h - slit2Y - slitWidth / 2);
+      ctx.fillStyle = barrierColor;
+      // Top barrier
+      ctx.fillRect(barrierX - 4, 0, 8, slit1Y - slitWidth / 2);
+      // Middle barrier (between slits)
+      ctx.fillRect(barrierX - 4, slit1Y + slitWidth / 2, 8, slit2Y - slitWidth / 2 - slit1Y - slitWidth / 2);
+      // Bottom barrier
+      ctx.fillRect(barrierX - 4, slit2Y + slitWidth / 2, 8, h - slit2Y - slitWidth / 2);
 
-    // Draw slit edges (bright cyan lines marking the openings)
-    ctx.strokeStyle = slitEdgeColor;
-    ctx.lineWidth = 2;
-    // Slit 1 top edge
-    ctx.beginPath();
-    ctx.moveTo(barrierX - 4, slit1Y - slitWidth / 2);
-    ctx.lineTo(barrierX + 4, slit1Y - slitWidth / 2);
-    ctx.stroke();
-    // Slit 1 bottom edge
-    ctx.beginPath();
-    ctx.moveTo(barrierX - 4, slit1Y + slitWidth / 2);
-    ctx.lineTo(barrierX + 4, slit1Y + slitWidth / 2);
-    ctx.stroke();
-    // Slit 2 top edge
-    ctx.beginPath();
-    ctx.moveTo(barrierX - 4, slit2Y - slitWidth / 2);
-    ctx.lineTo(barrierX + 4, slit2Y - slitWidth / 2);
-    ctx.stroke();
-    // Slit 2 bottom edge
-    ctx.beginPath();
-    ctx.moveTo(barrierX - 4, slit2Y + slitWidth / 2);
-    ctx.lineTo(barrierX + 4, slit2Y + slitWidth / 2);
-    ctx.stroke();
+      // Draw slit edges (bright cyan lines marking the openings)
+      ctx.strokeStyle = slitEdgeColor;
+      ctx.lineWidth = 2;
+      // Slit 1 top edge
+      ctx.beginPath();
+      ctx.moveTo(barrierX - 4, slit1Y - slitWidth / 2);
+      ctx.lineTo(barrierX + 4, slit1Y - slitWidth / 2);
+      ctx.stroke();
+      // Slit 1 bottom edge
+      ctx.beginPath();
+      ctx.moveTo(barrierX - 4, slit1Y + slitWidth / 2);
+      ctx.lineTo(barrierX + 4, slit1Y + slitWidth / 2);
+      ctx.stroke();
+      // Slit 2 top edge
+      ctx.beginPath();
+      ctx.moveTo(barrierX - 4, slit2Y - slitWidth / 2);
+      ctx.lineTo(barrierX + 4, slit2Y - slitWidth / 2);
+      ctx.stroke();
+      // Slit 2 bottom edge
+      ctx.beginPath();
+      ctx.moveTo(barrierX - 4, slit2Y + slitWidth / 2);
+      ctx.lineTo(barrierX + 4, slit2Y + slitWidth / 2);
+      ctx.stroke();
 
-    // Barrier vertical edges
-    ctx.strokeStyle = barrierEdgeColor;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(barrierX - 4, 0);
-    ctx.lineTo(barrierX - 4, h);
-    ctx.moveTo(barrierX + 4, 0);
-    ctx.lineTo(barrierX + 4, h);
-    ctx.stroke();
+      // Barrier vertical edges
+      ctx.strokeStyle = barrierEdgeColor;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(barrierX - 4, 0);
+      ctx.lineTo(barrierX - 4, h);
+      ctx.moveTo(barrierX + 4, 0);
+      ctx.lineTo(barrierX + 4, h);
+      ctx.stroke();
 
-    // Slit labels
-    ctx.fillStyle = '#22d3ee';
-    ctx.font = '10px Inter, sans-serif';
-    ctx.fillText('↑ Rendija 1', barrierX + 10, slit1Y - 5);
-    ctx.fillText('↑ Rendija 2', barrierX + 10, slit2Y - 5);
+      // Slit labels
+      ctx.fillStyle = '#22d3ee';
+      ctx.font = '10px Inter, sans-serif';
+      ctx.fillText('↑ Rendija 1', barrierX + 10, slit1Y - 5);
+      ctx.fillText('↑ Rendija 2', barrierX + 10, slit2Y - 5);
 
-    // Compute interference pattern
-    const imgData = ctx.createImageData(w, h);
-    const data = imgData.data;
+      // Compute interference pattern
+      const imgData = ctx.createImageData(w, h);
+      const data = imgData.data;
 
-    // Precompute constants for interference pattern
-    // Fringe spacing: Δy = λ * D / d, where D = distance to screen (px - barrierX)
-    // Intensity: I = I₀ cos²(π * d * sin(θ) / λ) ≈ I₀ cos²(π * d * y / (λ * D))
+      // Precompute constants for interference pattern
+      // Fringe spacing: Δy = λ * D / d, where D = distance to screen (px - barrierX)
+      // Intensity: I = I₀ sinc²(π * a * sinθ / λ) * cos²(π * d * sinθ / λ)
+      // where a = slitWidth, d = slitDist, sinθ ≈ y / D
 
-    for (let px = barrierX + 10; px < w; px++) {
-      const D = px - barrierX; // distance from barrier to screen point
-      for (let py = 0; py < h; py++) {
-        // Distance from each slit
-        const dx1 = px - barrierX;
-        const dy1 = py - slit1Y;
-        const r1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
+      for (let px = barrierX + 10; px < w; px++) {
+        const D = px - barrierX; // distance from barrier to screen point
+        for (let py = 0; py < h; py++) {
+          // Distance from each slit
+          const dx1 = px - barrierX;
+          const dy1 = py - slit1Y;
+          const r1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
 
-        const dx2 = px - barrierX;
-        const dy2 = py - slit2Y;
-        const r2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+          const dx2 = px - barrierX;
+          const dy2 = py - slit2Y;
+          const r2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
 
-        // Wave from each slit (circular waves) - reduced 1/sqrt(r) falloff for visibility
-        const wave1 = Math.sin(k * r1 - omega * t) / Math.pow(Math.max(r1, 1), 0.25);
-        const wave2 = Math.sin(k * r2 - omega * t) / Math.pow(Math.max(r2, 1), 0.25);
-        const total = wave1 + wave2;
+          // Wave from each slit (circular waves) - reduced 1/sqrt(r) falloff for visibility
+          const wave1 = Math.sin(k * r1 - omega * t) / Math.pow(Math.max(r1, 1), 0.25);
+          const wave2 = Math.sin(k * r2 - omega * t) / Math.pow(Math.max(r2, 1), 0.25);
+          const total = wave1 + wave2;
 
-        // Map to color - use full dynamic range with gamma correction
-        const intensity = Math.abs(total); // 0 to ~2
-        const normalized = Math.min(1, intensity / 1.5); // normalize to 0-1
-        const gamma = Math.pow(normalized, 0.6); // gamma correction for better contrast
-        const bright = gamma * brightness; // apply brightness control
+          // Single-slit diffraction envelope: sinc²(π * a * y / (λ * D))
+          // where a = slitWidth, y = distance from center (h/2)
+          const y = py - h / 2;
+          const arg = Math.PI * slitWidth * y / (lam * Math.max(D, 1));
+          const envelope = arg === 0 ? 1 : Math.pow(Math.sin(arg) / arg, 2);
 
-        // HSV to RGB for color control
-        const hue = colorHue * 360; // 0-360 degrees
-        const sat = 0.8;
-        const val = Math.min(1, bright);
-        const c = val * sat;
-        const x = c * (1 - Math.abs((hue / 60) % 2 - 1));
-        const m = val - c;
-        let r, g, b;
-        if (hue < 60) { r = c; g = x; b = 0; }
-        else if (hue < 120) { r = x; g = c; b = 0; }
-        else if (hue < 180) { r = 0; g = c; b = x; }
-        else if (hue < 240) { r = 0; g = x; b = c; }
-        else if (hue < 300) { r = x; g = 0; b = c; }
-        else { r = c; g = 0; b = x; }
-        r = (r + m) * 255;
-        g = (g + m) * 255;
-        b = (b + m) * 255;
+          // Map to color - use full dynamic range with gamma correction
+          const intensity = Math.abs(total); // 0 to ~2
+          const normalized = Math.min(1, intensity / 1.5); // normalize to 0-1
+          const gamma = Math.pow(normalized, 0.6); // gamma correction for better contrast
+          const bright = gamma * brightness * envelope; // apply brightness AND slit envelope
 
-        const idx = (py * w + px) * 4;
-        data[idx] = Math.floor(r);
-        data[idx + 1] = Math.floor(g);
-        data[idx + 2] = Math.floor(b);
-        data[idx + 3] = Math.floor(bright * 230 + 25);
+          // HSV to RGB for color control
+          const hue = colorHue * 360; // 0-360 degrees
+          const sat = 0.8;
+          const val = Math.min(1, bright);
+          const c = val * sat;
+          const x = c * (1 - Math.abs((hue / 60) % 2 - 1));
+          const m = val - c;
+          let r, g, b;
+          if (hue < 60) { r = c; g = x; b = 0; }
+          else if (hue < 120) { r = x; g = c; b = 0; }
+          else if (hue < 180) { r = 0; g = c; b = x; }
+          else if (hue < 240) { r = 0; g = x; b = c; }
+          else if (hue < 300) { r = x; g = 0; b = c; }
+          else { r = c; g = 0; b = x; }
+          r = (r + m) * 255;
+          g = (g + m) * 255;
+          b = (b + m) * 255;
+
+          const idx = (py * w + px) * 4;
+          data[idx] = Math.floor(r);
+          data[idx + 1] = Math.floor(g);
+          data[idx + 2] = Math.floor(b);
+          data[idx + 3] = Math.floor(bright * 230 + 25);
+        }
       }
-    }
 
-    // Incoming plane wave (left side) - brighter
-    for (let px = 0; px < barrierX - 5; px++) {
-      for (let py = 0; py < h; py++) {
-        const wave = Math.sin(k * px - omega * t);
-        const intensity = (wave + 1) * 0.5; // 0 to 1
-        const gamma = Math.pow(intensity, 0.7);
-        const bright = gamma * brightness;
-        const hue = colorHue * 360;
-        const sat = 0.6;
-        const val = Math.min(1, bright);
-        const c = val * sat;
-        const x = c * (1 - Math.abs((hue / 60) % 2 - 1));
-        const m = val - c;
-        let r, g, b;
-        if (hue < 60) { r = c; g = x; b = 0; }
-        else if (hue < 120) { r = x; g = c; b = 0; }
-        else if (hue < 180) { r = 0; g = c; b = x; }
-        else if (hue < 240) { r = 0; g = x; b = c; }
-        else if (hue < 300) { r = x; g = 0; b = c; }
-        else { r = c; g = 0; b = x; }
-        r = (r + m) * 255;
-        g = (g + m) * 255;
-        b = (b + m) * 255;
+      // Incoming plane wave (left side) - brighter
+      for (let px = 0; px < barrierX - 5; px++) {
+        for (let py = 0; py < h; py++) {
+          const wave = Math.sin(k * px - omega * t);
+          const intensity = (wave + 1) * 0.5; // 0 to 1
+          const gamma = Math.pow(intensity, 0.7);
+          const bright = gamma * brightness;
+          const hue = colorHue * 360;
+          const sat = 0.6;
+          const val = Math.min(1, bright);
+          const c = val * sat;
+          const x = c * (1 - Math.abs((hue / 60) % 2 - 1));
+          const m = val - c;
+          let r, g, b;
+          if (hue < 60) { r = c; g = x; b = 0; }
+          else if (hue < 120) { r = x; g = c; b = 0; }
+          else if (hue < 180) { r = 0; g = c; b = x; }
+          else if (hue < 240) { r = 0; g = x; b = c; }
+          else if (hue < 300) { r = x; g = 0; b = c; }
+          else { r = c; g = 0; b = x; }
+          r = (r + m) * 255;
+          g = (g + m) * 255;
+          b = (b + m) * 255;
 
-        const idx = (py * w + px) * 4;
-        data[idx] = Math.floor(r);
-        data[idx + 1] = Math.floor(g);
-        data[idx + 2] = Math.floor(b);
-        data[idx + 3] = Math.floor(bright * 200 + 55);
+          const idx = (py * w + px) * 4;
+          data[idx] = Math.floor(r);
+          data[idx + 1] = Math.floor(g);
+          data[idx + 2] = Math.floor(b);
+          data[idx + 3] = Math.floor(bright * 200 + 55);
+        }
       }
+
+      ctx.putImageData(imgData, 0, 0);
+
+      // Labels
+      ctx.fillStyle = '#fff';
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText(`λ = ${lam}px`, 10, 20);
+      ctx.fillText(`d = ${slitDist}px`, 10, 36);
+      ctx.fillText(`a = ${slitWidth}px`, 10, 52);
+      ctx.fillText('Onda plana →', 10, h - 10);
+      ctx.fillText('← Interferencia', w - 100, 20);
     }
-
-    ctx.putImageData(imgData, 0, 0);
-
-    // Labels
-    ctx.fillStyle = '#fff';
-    ctx.font = '11px Inter, sans-serif';
-    ctx.fillText(`λ = ${lam}px`, 10, 20);
-    ctx.fillText(`d = ${slitDist}px`, 10, 36);
-    ctx.fillText('Onda plana →', 10, h - 10);
-    ctx.fillText('← Interferencia', w - 100, 20);
-  }
 
   return (
     <div className="space-y-4">
