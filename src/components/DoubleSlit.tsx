@@ -95,86 +95,100 @@ export default function DoubleSlit() {
     ctx.fillText('↑ Rendija 2', barrierX + 10, slit2Y - 5);
 
     // Compute interference pattern using analytical double-slit formula
-    // I(y) = I₀ * sinc²(π * a * y / (λ * D)) * cos²(π * d * y / (λ * D))
-    // a = slitWidth, d = slitDist, y = py - h/2, D = px - barrierX
+    // Screen at fixed distance L from slits
+    // I(y) = I₀ * sinc²(π * a * y / (λ * L)) * cos²(π * d * y / (λ * L))
+    // a = slitWidth, d = slitDist, y = py - h/2 (vertical position on screen)
+    // L = screen distance (fixed)
     const imgData = ctx.createImageData(w, h);
     const data = imgData.data;
 
-    for (let px = barrierX + 10; px < w; px++) {
-      const D = px - barrierX; // distance from barrier to screen point
+    // Fixed screen distance (in pixels) - classic double-slit geometry
+    const L = 300; // distance from slits to "screen" in pixels
+    const screenLeft = barrierX + 20; // where the pattern starts
+
+    for (let px = 0; px < w; px++) {
       for (let py = 0; py < h; py++) {
-        const y = py - h / 2; // vertical position from center
+        // Left of barrier: incoming plane wave
+        if (px < barrierX - 5) {
+          const wave = Math.sin(k * px - omega * t);
+          const intensity = (wave + 1) * 0.5;
+          const gamma = Math.pow(intensity, 0.7);
+          const bright = gamma * brightness;
+          const hue = colorHue * 360;
+          const sat = 0.6;
+          const val = Math.min(1, bright);
+          const c = val * sat;
+          const x = c * (1 - Math.abs((hue / 60) % 2 - 1));
+          const m = val - c;
+          let r, g, b;
+          if (hue < 60) { r = c; g = x; b = 0; }
+          else if (hue < 120) { r = x; g = c; b = 0; }
+          else if (hue < 180) { r = 0; g = c; b = x; }
+          else if (hue < 240) { r = 0; g = x; b = c; }
+          else if (hue < 300) { r = x; g = 0; b = c; }
+          else { r = c; g = 0; b = x; }
+          r = (r + m) * 255;
+          g = (g + m) * 255;
+          b = (b + m) * 255;
 
-        // Single-slit diffraction envelope: sinc²(π * a * y / (λ * D))
-        const argSingle = Math.PI * slitWidth * y / (lam * Math.max(D, 1));
-        const envelope = argSingle === 0 ? 1 : Math.pow(Math.sin(argSingle) / argSingle, 2);
+          const idx = (py * w + px) * 4;
+          data[idx] = Math.floor(r);
+          data[idx + 1] = Math.floor(g);
+          data[idx + 2] = Math.floor(b);
+          data[idx + 3] = Math.floor(bright * 200 + 55);
+        }
+        // Barrier region
+        else if (px >= barrierX - 5 && px < screenLeft) {
+          // Dark barrier area
+          const idx = (py * w + px) * 4;
+          data[idx] = 20;
+          data[idx + 1] = 25;
+          data[idx + 2] = 40;
+          data[idx + 3] = 255;
+        }
+        // Screen region: interference pattern at fixed distance L
+        else {
+          const y = py - h / 2; // vertical position on screen (center = 0)
 
-        // Double-slit interference: cos²(π * d * y / (λ * D))
-        const argDouble = Math.PI * slitDist * y / (lam * Math.max(D, 1));
-        const interference = Math.pow(Math.cos(argDouble), 2);
+          // Single-slit diffraction envelope: sinc²(π * a * y / (λ * L))
+          const argSingle = Math.PI * slitWidth * y / (lam * L);
+          const envelope = argSingle === 0 ? 1 : Math.pow(Math.sin(argSingle) / argSingle, 2);
 
-        // Combined intensity (0 to 1)
-        const intensity = envelope * interference;
+          // Double-slit interference: cos²(π * d * y / (λ * L))
+          const argDouble = Math.PI * slitDist * y / (lam * L);
+          const interference = Math.pow(Math.cos(argDouble), 2);
 
-        // Apply gamma correction and brightness for vivid colors
-        const gamma = Math.pow(Math.min(1, intensity * 2), 0.5); // expand dynamic range
-        const bright = gamma * brightness;
+          // Combined intensity (0 to 1)
+          const intensity = envelope * interference;
 
-        // HSV to RGB for color control
-        const hue = colorHue * 360;
-        const sat = 0.85;
-        const val = Math.min(1, bright);
-        const c = val * sat;
-        const x = c * (1 - Math.abs((hue / 60) % 2 - 1));
-        const m = val - c;
-        let r, g, b;
-        if (hue < 60) { r = c; g = x; b = 0; }
-        else if (hue < 120) { r = x; g = c; b = 0; }
-        else if (hue < 180) { r = 0; g = c; b = x; }
-        else if (hue < 240) { r = 0; g = x; b = c; }
-        else if (hue < 300) { r = x; g = 0; b = c; }
-        else { r = c; g = 0; b = x; }
-        r = (r + m) * 255;
-        g = (g + m) * 255;
-        b = (b + m) * 255;
+          // Apply gamma correction and brightness for vivid colors
+          const gamma = Math.pow(Math.min(1, intensity * 2.5), 0.45); // expand dynamic range
+          const bright = gamma * brightness;
 
-        const idx = (py * w + px) * 4;
-        data[idx] = Math.floor(r);
-        data[idx + 1] = Math.floor(g);
-        data[idx + 2] = Math.floor(b);
-        data[idx + 3] = Math.floor(bright * 230 + 25);
-      }
-    }
+          // HSV to RGB for color control
+          const hue = colorHue * 360;
+          const sat = 0.85;
+          const val = Math.min(1, bright);
+          const c = val * sat;
+          const x = c * (1 - Math.abs((hue / 60) % 2 - 1));
+          const m = val - c;
+          let r, g, b;
+          if (hue < 60) { r = c; g = x; b = 0; }
+          else if (hue < 120) { r = x; g = c; b = 0; }
+          else if (hue < 180) { r = 0; g = c; b = x; }
+          else if (hue < 240) { r = 0; g = x; b = c; }
+          else if (hue < 300) { r = x; g = 0; b = c; }
+          else { r = c; g = 0; b = x; }
+          r = (r + m) * 255;
+          g = (g + m) * 255;
+          b = (b + m) * 255;
 
-    // Incoming plane wave (left side) - animated
-    for (let px = 0; px < barrierX - 5; px++) {
-      for (let py = 0; py < h; py++) {
-        const wave = Math.sin(k * px - omega * t);
-        const intensity = (wave + 1) * 0.5;
-        const gamma = Math.pow(intensity, 0.7);
-        const bright = gamma * brightness;
-        const hue = colorHue * 360;
-        const sat = 0.6;
-        const val = Math.min(1, bright);
-        const c = val * sat;
-        const x = c * (1 - Math.abs((hue / 60) % 2 - 1));
-        const m = val - c;
-        let r, g, b;
-        if (hue < 60) { r = c; g = x; b = 0; }
-        else if (hue < 120) { r = x; g = c; b = 0; }
-        else if (hue < 180) { r = 0; g = c; b = x; }
-        else if (hue < 240) { r = 0; g = x; b = c; }
-        else if (hue < 300) { r = x; g = 0; b = c; }
-        else { r = c; g = 0; b = x; }
-        r = (r + m) * 255;
-        g = (g + m) * 255;
-        b = (b + m) * 255;
-
-        const idx = (py * w + px) * 4;
-        data[idx] = Math.floor(r);
-        data[idx + 1] = Math.floor(g);
-        data[idx + 2] = Math.floor(b);
-        data[idx + 3] = Math.floor(bright * 200 + 55);
+          const idx = (py * w + px) * 4;
+          data[idx] = Math.floor(r);
+          data[idx + 1] = Math.floor(g);
+          data[idx + 2] = Math.floor(b);
+          data[idx + 3] = Math.floor(bright * 230 + 25);
+        }
       }
     }
 
@@ -186,8 +200,9 @@ export default function DoubleSlit() {
     ctx.fillText(`λ = ${lam}px`, 10, 20);
     ctx.fillText(`d = ${slitDist}px`, 10, 36);
     ctx.fillText(`a = ${slitWidth}px`, 10, 52);
+    ctx.fillText(`L = ${L}px`, 10, 68);
     ctx.fillText('Onda plana →', 10, h - 10);
-    ctx.fillText('← Interferencia', w - 100, 20);
+    ctx.fillText('← Pantalla de interferencia', w - 140, 20);
   }
 
   return (
