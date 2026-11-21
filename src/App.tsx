@@ -37,7 +37,7 @@ export default function App() {
             </div>
           </div>
           <a
-            href="https://github.com"
+            href="https://github.com/amurlaniakea/wave-lab"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1"
