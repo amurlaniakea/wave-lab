@@ -102,9 +102,24 @@ export default function DoubleSlit() {
     const imgData = ctx.createImageData(w, h);
     const data = imgData.data;
 
-    // Fixed screen distance (in pixels) - classic double-slit geometry
-    const L = 300; // distance from slits to "screen" in pixels
+    // Fixed screen distance - adjusted so single-slit envelope is visible on screen
+    // First minimum of sinc² at y = λL/a. With λ=20, a=15, L=200 -> y=267px (visible on 400px canvas)
+    const L = 200; // distance from slits to "screen" in pixels
     const screenLeft = barrierX + 20; // where the pattern starts
+
+    // Precompute intensity profile for side graph (at center x)
+    const profileY = [];
+    const profileI = [];
+    for (let py = 0; py < h; py++) {
+      const y = py - h / 2;
+      const argSingle = Math.PI * slitWidth * y / (lam * L);
+      const envelope = argSingle === 0 ? 1 : Math.pow(Math.sin(argSingle) / argSingle, 2);
+      const argDouble = Math.PI * slitDist * y / (lam * L);
+      const interference = Math.pow(Math.cos(argDouble), 2);
+      profileY.push(py);
+      profileI.push(envelope * interference);
+    }
+    const maxI = Math.max(...profileI);
 
     for (let px = 0; px < w; px++) {
       for (let py = 0; py < h; py++) {
@@ -161,14 +176,14 @@ export default function DoubleSlit() {
           // Combined intensity (0 to 1)
           const intensity = envelope * interference;
 
-          // Apply gamma correction and brightness for vivid colors
-          const gamma = Math.pow(Math.min(1, intensity * 2.5), 0.45); // expand dynamic range
-          const bright = gamma * brightness;
+          // Apply gamma correction for high contrast fringes
+          // Use linear mapping with strong contrast to show zeros clearly
+          const bright = Math.min(1, intensity * brightness * 3.0); // boost for visibility
 
           // HSV to RGB for color control
           const hue = colorHue * 360;
-          const sat = 0.85;
-          const val = Math.min(1, bright);
+          const sat = 0.9;
+          const val = bright;
           const c = val * sat;
           const x = c * (1 - Math.abs((hue / 60) % 2 - 1));
           const m = val - c;
@@ -187,12 +202,35 @@ export default function DoubleSlit() {
           data[idx] = Math.floor(r);
           data[idx + 1] = Math.floor(g);
           data[idx + 2] = Math.floor(b);
-          data[idx + 3] = Math.floor(bright * 230 + 25);
+          data[idx + 3] = 255;
         }
       }
     }
 
     ctx.putImageData(imgData, 0, 0);
+
+    // Draw intensity profile on right side (1D graph of I(y))
+    const graphX = w - 80;
+    const graphW = 70;
+    const graphH = h;
+    ctx.strokeStyle = '#22d3ee';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let i = 0; i < h; i++) {
+      const intensity = profileI[i] / maxI;
+      const x = graphX + intensity * graphW;
+      if (i === 0) ctx.moveTo(x, i);
+      else ctx.lineTo(x, i);
+    }
+    ctx.stroke();
+
+    // Graph axis
+    ctx.strokeStyle = 'rgba(34, 211, 238, 0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(graphX, 0);
+    ctx.lineTo(graphX, h);
+    ctx.stroke();
 
     // Labels
     ctx.fillStyle = '#fff';
@@ -202,7 +240,11 @@ export default function DoubleSlit() {
     ctx.fillText(`a = ${slitWidth}px`, 10, 52);
     ctx.fillText(`L = ${L}px`, 10, 68);
     ctx.fillText('Onda plana →', 10, h - 10);
-    ctx.fillText('← Pantalla de interferencia', w - 140, 20);
+    ctx.fillText('← Pantalla', w - 100, 20);
+    // Profile label
+    ctx.fillStyle = '#22d3ee';
+    ctx.font = '9px Inter, sans-serif';
+    ctx.fillText('I(y)', w - 55, 15);
   }
 
   return (
