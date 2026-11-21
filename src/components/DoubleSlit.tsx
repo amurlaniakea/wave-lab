@@ -49,7 +49,12 @@ export default function DoubleSlit() {
     const imgData = ctx.createImageData(w, h);
     const data = imgData.data;
 
+    // Precompute constants for interference pattern
+    // Fringe spacing: Δy = λ * D / d, where D = distance to screen (px - barrierX)
+    // Intensity: I = I₀ cos²(π * d * sin(θ) / λ) ≈ I₀ cos²(π * d * y / (λ * D))
+
     for (let px = barrierX + 10; px < w; px++) {
+      const D = px - barrierX; // distance from barrier to screen point
       for (let py = 0; py < h; py++) {
         // Distance from each slit
         const dx1 = px - barrierX;
@@ -60,33 +65,36 @@ export default function DoubleSlit() {
         const dy2 = py - slit2Y;
         const r2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
 
-        // Wave from each slit (circular waves)
-        const wave1 = Math.sin(k * r1 - omega * t) / Math.sqrt(Math.max(r1, 1));
-        const wave2 = Math.sin(k * r2 - omega * t) / Math.sqrt(Math.max(r2, 1));
+        // Wave from each slit (circular waves) - reduced 1/sqrt(r) falloff for visibility
+        const wave1 = Math.sin(k * r1 - omega * t) / Math.pow(Math.max(r1, 1), 0.25);
+        const wave2 = Math.sin(k * r2 - omega * t) / Math.pow(Math.max(r2, 1), 0.25);
         const total = wave1 + wave2;
 
-        // Map to color
-        const intensity = (total + 0.1) * 0.5;
-        const clamped = Math.max(0, Math.min(1, intensity));
+        // Map to color - use full dynamic range with gamma correction
+        const intensity = Math.abs(total); // 0 to ~2
+        const normalized = Math.min(1, intensity / 1.5); // normalize to 0-1
+        const gamma = Math.pow(normalized, 0.6); // gamma correction for better contrast
 
         const idx = (py * w + px) * 4;
-        data[idx] = Math.floor(clamped * 80 + 20);     // R
-        data[idx + 1] = Math.floor(clamped * 120 + 40); // G
-        data[idx + 2] = Math.floor(clamped * 255);       // B
-        data[idx + 3] = Math.floor(clamped * 200 + 55);  // A
+        // Vibrant interference colors: blue-cyan-magenta-yellow
+        data[idx] = Math.floor(gamma * 220 + 35);       // R: 35-255
+        data[idx + 1] = Math.floor(gamma * 180 + 40);   // G: 40-220
+        data[idx + 2] = Math.floor(gamma * 255);        // B: 0-255
+        data[idx + 3] = Math.floor(gamma * 230 + 25);   // A: 25-255
       }
     }
 
-    // Incoming plane wave
+    // Incoming plane wave (left side) - brighter
     for (let px = 0; px < barrierX - 5; px++) {
       for (let py = 0; py < h; py++) {
         const wave = Math.sin(k * px - omega * t);
-        const intensity = (wave + 1) * 0.5;
+        const intensity = (wave + 1) * 0.5; // 0 to 1
+        const gamma = Math.pow(intensity, 0.7);
         const idx = (py * w + px) * 4;
-        data[idx] = Math.floor(intensity * 60 + 15);
-        data[idx + 1] = Math.floor(intensity * 90 + 30);
-        data[idx + 2] = Math.floor(intensity * 200);
-        data[idx + 3] = Math.floor(intensity * 150 + 50);
+        data[idx] = Math.floor(gamma * 180 + 30);
+        data[idx + 1] = Math.floor(gamma * 200 + 30);
+        data[idx + 2] = Math.floor(gamma * 255);
+        data[idx + 3] = Math.floor(gamma * 200 + 55);
       }
     }
 
