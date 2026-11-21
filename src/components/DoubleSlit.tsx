@@ -41,11 +41,58 @@ export default function DoubleSlit() {
     const slit1Y = h / 2 - slitDist / 2;
     const slit2Y = h / 2 + slitDist / 2;
 
-    // Draw barrier
-    ctx.fillStyle = '#1e293b';
+    // Draw barrier - make it clearly visible
+    const barrierColor = '#374151'; // lighter gray
+    const barrierEdgeColor = '#64748b'; // slate edge
+    const slitEdgeColor = '#22d3ee'; // cyan edge for slit openings
+
+    ctx.fillStyle = barrierColor;
+    // Top barrier
     ctx.fillRect(barrierX - 4, 0, 8, slit1Y - slitWidth / 2);
+    // Middle barrier (between slits)
     ctx.fillRect(barrierX - 4, slit1Y + slitWidth / 2, 8, slit2Y - slitWidth / 2 - slit1Y - slitWidth / 2);
+    // Bottom barrier
     ctx.fillRect(barrierX - 4, slit2Y + slitWidth / 2, 8, h - slit2Y - slitWidth / 2);
+
+    // Draw slit edges (bright cyan lines marking the openings)
+    ctx.strokeStyle = slitEdgeColor;
+    ctx.lineWidth = 2;
+    // Slit 1 top edge
+    ctx.beginPath();
+    ctx.moveTo(barrierX - 4, slit1Y - slitWidth / 2);
+    ctx.lineTo(barrierX + 4, slit1Y - slitWidth / 2);
+    ctx.stroke();
+    // Slit 1 bottom edge
+    ctx.beginPath();
+    ctx.moveTo(barrierX - 4, slit1Y + slitWidth / 2);
+    ctx.lineTo(barrierX + 4, slit1Y + slitWidth / 2);
+    ctx.stroke();
+    // Slit 2 top edge
+    ctx.beginPath();
+    ctx.moveTo(barrierX - 4, slit2Y - slitWidth / 2);
+    ctx.lineTo(barrierX + 4, slit2Y - slitWidth / 2);
+    ctx.stroke();
+    // Slit 2 bottom edge
+    ctx.beginPath();
+    ctx.moveTo(barrierX - 4, slit2Y + slitWidth / 2);
+    ctx.lineTo(barrierX + 4, slit2Y + slitWidth / 2);
+    ctx.stroke();
+
+    // Barrier vertical edges
+    ctx.strokeStyle = barrierEdgeColor;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(barrierX - 4, 0);
+    ctx.lineTo(barrierX - 4, h);
+    ctx.moveTo(barrierX + 4, 0);
+    ctx.lineTo(barrierX + 4, h);
+    ctx.stroke();
+
+    // Slit labels
+    ctx.fillStyle = '#22d3ee';
+    ctx.font = '10px Inter, sans-serif';
+    ctx.fillText('↑ Rendija 1', barrierX + 10, slit1Y - 5);
+    ctx.fillText('↑ Rendija 2', barrierX + 10, slit2Y - 5);
 
     // Compute interference pattern
     const imgData = ctx.createImageData(w, h);
