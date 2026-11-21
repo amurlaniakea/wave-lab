@@ -20,6 +20,12 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#0a0a1a] text-slate-200">
+      {/* Tagline */}
+      <div className="w-full py-3 px-4 text-center border-b border-indigo-900/30 bg-[#0a0a1a]/50">
+        <p className="text-xs md:text-sm text-indigo-300/90 font-medium tracking-wide select-none">
+          «Tecnósfera al servicio de la Biósfera.» — «La Paz Es El Camino.»
+        </p>
+      </div>
       {/* Header */}
       <header className="border-b border-indigo-900/30 bg-[#0a0a1a]/90 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
