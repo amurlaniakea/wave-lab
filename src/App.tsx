@@ -21,7 +21,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#0a0a1a] text-slate-200">
       {/* Tagline */}
-      <div className="w-full py-4 px-4 text-center border-b border-indigo-900/30 bg-[#0a0a1a]/50 mt-2 md:mt-4">
+      <div className="w-full py-4 px-4 text-center border-b border-indigo-900/30 bg-[#0a0a1a]/50">
         <p className="text-xs md:text-sm text-fuchsia-300/95 font-medium tracking-wide select-none">
           «Tecnósfera al servicio de la Biósfera.» — «La Paz Es El Camino.»
         </p>
