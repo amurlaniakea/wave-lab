@@ -9,6 +9,8 @@ export default function DoubleSlit() {
   const [wavelength, setWavelength] = useState(20);
   const [slitDist, setSlitDist] = useState(60);
   const [slitWidth, setSlitWidth] = useState(15);
+  const [brightness, setBrightness] = useState(1.0);
+  const [colorHue, setColorHue] = useState(0.5);
   const [paused, setPaused] = useState(false);
 
   useAnimationFrame((dt) => {
@@ -17,7 +19,7 @@ export default function DoubleSlit() {
     draw();
   }, !paused);
 
-  useEffect(() => { draw(); }, [wavelength, slitDist, slitWidth]);
+  useEffect(() => { draw(); }, [wavelength, slitDist, slitWidth, brightness, colorHue]);
 
   function draw() {
     const canvas = canvasRef.current;
@@ -74,13 +76,31 @@ export default function DoubleSlit() {
         const intensity = Math.abs(total); // 0 to ~2
         const normalized = Math.min(1, intensity / 1.5); // normalize to 0-1
         const gamma = Math.pow(normalized, 0.6); // gamma correction for better contrast
+        const bright = gamma * brightness; // apply brightness control
+
+        // HSV to RGB for color control
+        const hue = colorHue * 360; // 0-360 degrees
+        const sat = 0.8;
+        const val = Math.min(1, bright);
+        const c = val * sat;
+        const x = c * (1 - Math.abs((hue / 60) % 2 - 1));
+        const m = val - c;
+        let r, g, b;
+        if (hue < 60) { r = c; g = x; b = 0; }
+        else if (hue < 120) { r = x; g = c; b = 0; }
+        else if (hue < 180) { r = 0; g = c; b = x; }
+        else if (hue < 240) { r = 0; g = x; b = c; }
+        else if (hue < 300) { r = x; g = 0; b = c; }
+        else { r = c; g = 0; b = x; }
+        r = (r + m) * 255;
+        g = (g + m) * 255;
+        b = (b + m) * 255;
 
         const idx = (py * w + px) * 4;
-        // Vibrant interference colors: blue-cyan-magenta-yellow
-        data[idx] = Math.floor(gamma * 220 + 35);       // R: 35-255
-        data[idx + 1] = Math.floor(gamma * 180 + 40);   // G: 40-220
-        data[idx + 2] = Math.floor(gamma * 255);        // B: 0-255
-        data[idx + 3] = Math.floor(gamma * 230 + 25);   // A: 25-255
+        data[idx] = Math.floor(r);
+        data[idx + 1] = Math.floor(g);
+        data[idx + 2] = Math.floor(b);
+        data[idx + 3] = Math.floor(bright * 230 + 25);
       }
     }
 
@@ -90,11 +110,29 @@ export default function DoubleSlit() {
         const wave = Math.sin(k * px - omega * t);
         const intensity = (wave + 1) * 0.5; // 0 to 1
         const gamma = Math.pow(intensity, 0.7);
+        const bright = gamma * brightness;
+        const hue = colorHue * 360;
+        const sat = 0.6;
+        const val = Math.min(1, bright);
+        const c = val * sat;
+        const x = c * (1 - Math.abs((hue / 60) % 2 - 1));
+        const m = val - c;
+        let r, g, b;
+        if (hue < 60) { r = c; g = x; b = 0; }
+        else if (hue < 120) { r = x; g = c; b = 0; }
+        else if (hue < 180) { r = 0; g = c; b = x; }
+        else if (hue < 240) { r = 0; g = x; b = c; }
+        else if (hue < 300) { r = x; g = 0; b = c; }
+        else { r = c; g = 0; b = x; }
+        r = (r + m) * 255;
+        g = (g + m) * 255;
+        b = (b + m) * 255;
+
         const idx = (py * w + px) * 4;
-        data[idx] = Math.floor(gamma * 180 + 30);
-        data[idx + 1] = Math.floor(gamma * 200 + 30);
-        data[idx + 2] = Math.floor(gamma * 255);
-        data[idx + 3] = Math.floor(gamma * 200 + 55);
+        data[idx] = Math.floor(r);
+        data[idx + 1] = Math.floor(g);
+        data[idx + 2] = Math.floor(b);
+        data[idx + 3] = Math.floor(bright * 200 + 55);
       }
     }
 
@@ -124,6 +162,16 @@ export default function DoubleSlit() {
         <div>
           <label className="text-xs text-indigo-300">Ancho de rendija: {slitWidth}px</label>
           <input type="range" min="5" max="40" value={slitWidth} onChange={e => setSlitWidth(+e.target.value)} className="slider-control" />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+        <div>
+          <label className="text-xs text-yellow-300">Brillo: {brightness.toFixed(2)}</label>
+          <input type="range" min="0.1" max="2" step="0.05" value={brightness} onChange={e => setBrightness(+e.target.value)} className="slider-control" />
+        </div>
+        <div>
+          <label className="text-xs text-pink-300">Tono de color: {Math.round(colorHue * 360)}°</label>
+          <input type="range" min="0" max="1" step="0.01" value={colorHue} onChange={e => setColorHue(+e.target.value)} className="slider-control" />
         </div>
       </div>
       <button onClick={() => setPaused(!paused)} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm transition-colors">
