@@ -162,7 +162,7 @@ export default function QuantumPacket() {
     // Draw potential BELOW center line (separate from wave packet)
     if (showPotential && barrierHeight > 0) {
       const vBaseY = h * 0.9;
-      const vScale = h * 0.08;
+      const vScale = h * 0.0008; // scale factor for barrier height visualization
       ctx.fillStyle = 'rgba(239, 68, 68, 0.15)';
       ctx.strokeStyle = 'rgba(239, 68, 68, 0.7)';
       ctx.lineWidth = 2;
@@ -170,7 +170,7 @@ export default function QuantumPacket() {
       ctx.moveTo(0, vBaseY);
       for (let i = 0; i < N; i++) {
         const x = i * xScale;
-        const y = vBaseY - (potential.current[i] / (barrierHeight || 1)) * vScale;
+        const y = vBaseY - potential.current[i] * vScale;
         ctx.lineTo(x, y);
       }
       ctx.lineTo(w, vBaseY);
@@ -180,7 +180,7 @@ export default function QuantumPacket() {
       // Label
       ctx.font = '11px Inter, sans-serif';
       ctx.fillStyle = '#ef4444';
-      ctx.fillText('V(x)', 10, vBaseY - 5);
+      ctx.fillText(`V(x) max: ${barrierHeight.toFixed(1)}`, 10, vBaseY - 5);
     }
 
     // Draw |ψ|² (probability density) - filled
