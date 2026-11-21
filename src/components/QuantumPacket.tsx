@@ -3,17 +3,18 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { useAnimationFrame } from '../hooks/useAnimationFrame';
 
-// Quantum wave packet simulation using split-operator / Visscher method
+// Quantum wave packet simulation using Visscher method (explicit, symplectic)
 // Solves 1D time-dependent Schrödinger equation: iℏ ∂ψ/∂t = -ℏ²/2m ∂²ψ/∂x² + V(x)ψ
+// ℏ = 1, m = 1 units
 
 export default function QuantumPacket() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const timeRef = useRef(0);
 
   // Simulation parameters
-  const N = 256; // grid points
-  const dx = 0.25; // spatial step
-  const dt = 0.01; // time step
+  const N = 512; // grid points (increased for better resolution)
+  const dx = 0.1; // spatial step (finer grid)
+  const dt = 0.002; // time step (smaller for stability)
   const mass = 1;
 
   // State arrays (real and imaginary parts of psi)
@@ -23,16 +24,16 @@ export default function QuantumPacket() {
   const psiI2 = useRef<Float64Array>(new Float64Array(N));
   const potential = useRef<Float64Array>(new Float64Array(N));
 
-  const [sigma, setSigma] = useState(3);
-  const [k0, setK0] = useState(5);
+  const [sigma, setSigma] = useState(1.5);
+  const [k0, setK0] = useState(10);
   const [barrierHeight, setBarrierHeight] = useState(0);
-  const [barrierWidth, setBarrierWidth] = useState(10);
-  const [barrierPos, setBarrierPos] = useState(50);
+  const [barrierWidth, setBarrierWidth] = useState(20);
+  const [barrierPos, setBarrierPos] = useState(200);
   const [paused, setPaused] = useState(false);
   const [showPotential, setShowPotential] = useState(true);
 
   const initWavePacket = useCallback(() => {
-    const x0 = N * dx * 0.25; // initial center
+    const x0 = N * dx * 0.15; // initial center (left side)
     for (let i = 0; i < N; i++) {
       const x = i * dx;
       const gauss = Math.exp(-((x - x0) ** 2) / (2 * sigma * sigma));
@@ -74,6 +75,11 @@ export default function QuantumPacket() {
   }, [initWavePacket]);
 
   // Time evolution using Visscher method (explicit, symplectic)
+  // ψ_R(t+dt/2) = ψ_R(t) - dt/2 * H_I[ψ_I(t)]
+  // ψ_I(t+dt)   = ψ_I(t) + dt   * H_R[ψ_R(t+dt/2)]
+  // ψ_R(t+dt)   = ψ_R(t+dt/2) - dt/2 * H_I[ψ_I(t+dt)]
+  // where H_R[ψ_I] = -1/(2m) ∇²ψ_I + V ψ_I
+  //       H_I[ψ_R] =  1/(2m) ∇²ψ_R - V ψ_R
   const step = useCallback(() => {
     const pr = psiR.current;
     const pi = psiI.current;
@@ -82,29 +88,33 @@ export default function QuantumPacket() {
     const v = potential.current;
     const h = dx;
     const h2 = h * h;
-    const coeff = dt / (2 * mass * h2);
+    const coeff = dt / (2 * mass * h2); // dt/(2m*h²)
 
-    // Half step for imaginary part
+    // Half step for imaginary part: ψ_I(t+dt/2) = ψ_I(t) + dt/2 * H_R[ψ_R(t)]
+    // H_R[ψ_R] = -1/(2m) ∇²ψ_R + V ψ_R
     for (let i = 1; i < N - 1; i++) {
       const laplacian = (pr[i + 1] - 2 * pr[i] + pr[i - 1]) / h2;
-      pi2[i] = pi[i] + dt * (laplacian / (2 * mass) - v[i] * pr[i] / 2);
+      pi2[i] = pi[i] + dt * 0.5 * (-laplacian / (2 * mass) + v[i] * pr[i]);
     }
-    pi2[0] = 0;
-    pi2[N - 1] = 0;
+    pi2[0] = pi2[1]; // absorbing-ish boundary
+    pi2[N - 1] = pi2[N - 2];
 
-    // Full step for real part
+    // Full step for real part: ψ_R(t+dt) = ψ_R(t) - dt * H_I[ψ_I(t+dt/2)]
+    // H_I[ψ_I] = 1/(2m) ∇²ψ_I - V ψ_I
+    for (let i = 1; i < N - 1; i++) {
+      const laplacian = (pi2[i + 1] - 2 * pi2[i] + pi2[i - 1]) / h2;
+      pr2[i] = pr[i] - dt * (laplacian / (2 * mass) - v[i] * pi2[i]);
+    }
+    pr2[0] = pr2[1];
+    pr2[N - 1] = pr2[N - 2];
+
+    // Half step for imaginary part: ψ_I(t+dt) = ψ_I(t+dt/2) + dt/2 * H_R[ψ_R(t+dt)]
     for (let i = 1; i < N - 1; i++) {
       const laplacian = (pr2[i + 1] - 2 * pr2[i] + pr2[i - 1]) / h2;
-      pr2[i] = pr[i] - dt * (laplacian / (2 * mass) - v[i] * pi2[i] / 2);
+      pi2[i] = pi2[i] + dt * 0.5 * (-laplacian / (2 * mass) + v[i] * pr2[i]);
     }
-    pr2[0] = 0;
-    pr2[N - 1] = 0;
-
-    // Half step for imaginary part
-    for (let i = 1; i < N - 1; i++) {
-      const laplacian = (pr2[i + 1] - 2 * pr2[i] + pr2[i - 1]) / h2;
-      pi2[i] = pi2[i] + dt * (laplacian / (2 * mass) - v[i] * pr2[i] / 2) / 2;
-    }
+    pi2[0] = pi2[1];
+    pi2[N - 1] = pi2[N - 2];
 
     // Swap
     psiR.current.set(pr2);
@@ -114,10 +124,10 @@ export default function QuantumPacket() {
   useAnimationFrame(() => {
     if (paused) return;
     // Multiple sub-steps for stability
-    for (let s = 0; s < 5; s++) {
+    for (let s = 0; s < 4; s++) {
       step();
     }
-    timeRef.current += dt * 5;
+    timeRef.current += dt * 4;
     draw();
   }, !paused);
 
@@ -147,20 +157,20 @@ export default function QuantumPacket() {
       ctx.stroke();
     }
 
-    const baseY = h * 0.7;
-    const scale = h * 0.55;
+    const baseY = h * 0.5;
+    const scale = h * 0.4;
     const xScale = w / N;
 
-    // Draw potential
+    // Draw potential (above center line, inverted)
     if (showPotential && barrierHeight > 0) {
-      ctx.fillStyle = 'rgba(239, 68, 68, 0.15)';
-      ctx.strokeStyle = 'rgba(239, 68, 68, 0.6)';
-      ctx.lineWidth = 2;
+      ctx.fillStyle = 'rgba(239, 68, 68, 0.12)';
+      ctx.strokeStyle = 'rgba(239, 68, 68, 0.5)';
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(0, baseY);
       for (let i = 0; i < N; i++) {
         const x = i * xScale;
-        const y = baseY - (potential.current[i] / (barrierHeight || 1)) * scale * 0.5;
+        const y = baseY - (potential.current[i] / (barrierHeight || 1)) * scale * 0.3;
         ctx.lineTo(x, y);
       }
       ctx.lineTo(w, baseY);
@@ -169,8 +179,8 @@ export default function QuantumPacket() {
       ctx.stroke();
     }
 
-    // Draw |ψ|² (probability density)
-    ctx.fillStyle = 'rgba(99, 102, 241, 0.3)';
+    // Draw |ψ|² (probability density) - filled
+    ctx.fillStyle = 'rgba(99, 102, 241, 0.25)';
     ctx.beginPath();
     ctx.moveTo(0, baseY);
     for (let i = 0; i < N; i++) {
@@ -245,33 +255,33 @@ export default function QuantumPacket() {
     for (let i = 0; i < N; i++) {
       norm += (pr[i] * pr[i] + pi[i] * pi[i]) * dx;
     }
-    ctx.fillStyle = '#64748b';
+    ctx.fillStyle = norm > 0.99 && norm < 1.01 ? '#34d399' : '#f87171';
     ctx.fillText(`∫|ψ|²dx = ${norm.toFixed(4)}`, 10, 38);
   }
 
   return (
     <div className="space-y-4">
-      <canvas ref={canvasRef} width={700} height={380} className="w-full max-w-[700px] mx-auto" />
+      <canvas ref={canvasRef} width={800} height={400} className="w-full max-w-[800px] mx-auto" />
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <div>
           <label className="text-xs text-indigo-300">Ancho σ: {sigma.toFixed(1)}</label>
-          <input type="range" min="1" max="8" step="0.5" value={sigma} onChange={e => setSigma(+e.target.value)} className="slider-control" />
+          <input type="range" min="0.5" max="4" step="0.1" value={sigma} onChange={e => setSigma(+e.target.value)} className="slider-control" />
         </div>
         <div>
           <label className="text-xs text-indigo-300">Momento k₀: {k0.toFixed(1)}</label>
-          <input type="range" min="0" max="15" step="0.5" value={k0} onChange={e => setK0(+e.target.value)} className="slider-control" />
+          <input type="range" min="1" max="30" step="0.5" value={k0} onChange={e => setK0(+e.target.value)} className="slider-control" />
         </div>
         <div>
           <label className="text-xs text-red-300">Altura barrera V₀: {barrierHeight.toFixed(1)}</label>
-          <input type="range" min="0" max="20" step="0.5" value={barrierHeight} onChange={e => setBarrierHeight(+e.target.value)} className="slider-control" />
+          <input type="range" min="0" max="50" step="0.5" value={barrierHeight} onChange={e => setBarrierHeight(+e.target.value)} className="slider-control" />
         </div>
         <div>
           <label className="text-xs text-red-300">Ancho barrera: {barrierWidth}</label>
-          <input type="range" min="2" max="30" step="1" value={barrierWidth} onChange={e => setBarrierWidth(+e.target.value)} className="slider-control" />
+          <input type="range" min="5" max="80" step="1" value={barrierWidth} onChange={e => setBarrierWidth(+e.target.value)} className="slider-control" />
         </div>
         <div>
           <label className="text-xs text-red-300">Posición barrera: {barrierPos}</label>
-          <input type="range" min="20" max="80" step="1" value={barrierPos} onChange={e => setBarrierPos(+e.target.value)} className="slider-control" />
+          <input type="range" min="50" max="400" step="1" value={barrierPos} onChange={e => setBarrierPos(+e.target.value)} className="slider-control" />
         </div>
         <div className="flex items-end gap-2">
           <button onClick={() => setPaused(!paused)} className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm transition-colors">
@@ -286,7 +296,7 @@ export default function QuantumPacket() {
         </div>
       </div>
       <div className="text-xs text-slate-400 mt-2">
-        📐 Ecuación de Schrödinger 1D: iℏ∂ψ/∂t = -ℏ²/(2m)∂²ψ/∂x² + V(x)ψ — Método de Visscher (explícito, simpléctico). 
+        📐 Ecuación de Schrödinger 1D: iℏ∂ψ/∂t = -ℏ²/(2m)∂²ψ/∂x² + V(x)ψ — Método de Visscher (explícito, simpléctico).
         Observa el efecto túnel cuántico cuando la barrera es suficientemente delgada.
       </div>
     </div>
