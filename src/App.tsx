@@ -116,8 +116,8 @@ export default function App() {
           <p className="mt-4 font-medium tracking-wide select-none">
             <span className="text-blue-400">«Tecnósfera al servicio de la Biósfera.»</span> — <span className="text-red-400">«La Paz Es El Camino.»</span>
           </p>
-          <p className="mt-2 text-indigo-400/60 text-[10px] uppercase tracking-widest">
-            MagoPredator SPAIN
+          <p className="mt-2 text-[10px] uppercase tracking-widest select-none">
+            <span className="text-blue-400">MagoPredator</span> <span className="text-red-400">SPAIN</span>
           </p>
         </footer>
       </main>
